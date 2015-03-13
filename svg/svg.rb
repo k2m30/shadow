@@ -1,4 +1,5 @@
 require 'nokogiri'
+require_relative 'path/path'
 
 class SVG
   attr_accessor :paths
@@ -14,12 +15,13 @@ class SVG
     elements = []
     svg = Nokogiri::XML open file_name
     svg.traverse do |e|
-      elements.push e if e.element? && @allowed_elements.include?(e.name)
+      elements.push e if e.element?
     end
     elements.map do |e|
       @paths.push e.attribute_nodes.select { |a| a.name == 'd' }
     end
-    @paths.flatten!.map!(&:value).map! { |path| Path.new path }
+    @paths.flatten!.map!(&:value).map! { |path| Path.parse path }
+    @paths.flatten!
     @width = svg.at_css('svg')[:width].to_f
     @height = svg.at_css('svg')[:height].to_f
   end

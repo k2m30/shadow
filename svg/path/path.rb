@@ -1,25 +1,26 @@
+require_relative 'directions/move_to'
+require_relative 'directions/line_to'
+require_relative 'directions/horizontal_to'
+require_relative 'directions/vertical_to'
+require_relative 'directions/cubic_curve_to'
+require_relative 'directions/quadratic_curve_to'
+require_relative 'directions/arc_to'
+require_relative 'directions/close_path'
+
 class Path
   attr_accessor :directions, :start, :finish, :d
 
   DIRECTIONS = {
-      m: {class: MoveTo,
-          args: 2},
-      l: {class: LineTo,
-          args: 2},
-      h: {class: HorizontalTo,
-          args: 1},
-      v: {class: VerticalTo,
-          args: 1},
-      c: {class: CubicCurveTo,
-          args: 6},
-      s: {class: CubicCurveTo,
-          args: 4},
-      q: {class: QuadraticCurveTo,
-          args: 4},
-      t: {class: QuadraticCurveTo,
-          args: 2},
-      a: {class: ArcTo,
-          args: 7}
+      m: MoveTo,
+      l: LineTo,
+      h: HorizontalTo,
+      v: VerticalTo,
+      c: CubicCurveTo,
+      s: CubicCurveTo,
+      q: QuadraticCurveTo,
+      t: QuadraticCurveTo,
+      a: ArcTo,
+      z: ClosePath
   }
 
   def initialize(d=[])
@@ -27,70 +28,68 @@ class Path
     @directions = []
   end
 
-  def self.parse(d)
-    raise TypeError unless d.kind_of? String
-    subpaths = extract_subpaths d
-    raise TypeError if subpaths.empty?
-    paths = []
-    subpaths.each do |subpath|
-      paths << parse_subpath(subpath)
-    end
-    paths
+  def organize!
+    self
   end
 
-  private
-  def extract_subpaths(d)
-    subpaths = []
-    move_index = d.index(/[Mm]/)
-
-    if move_index != nil
-      subpaths << d[0...move_index] if move_index > 0
-      d.scan(/[Mm](?:\d|[eE.,+-]|[LlHhVvQqCcTtSsAaZz]|\W)+/m) do |match_group|
-        subpaths << $&
+  class << self
+    def parse(d)
+      raise TypeError unless d.kind_of? String
+      subpaths = extract_subpaths d
+      raise TypeError if subpaths.empty?
+      paths = []
+      subpaths.each do |subpath|
+        paths << parse_subpath(subpath).organize!
       end
-    else
-      subpaths << d
+      paths
     end
-    subpaths
-  end
 
-  def parse_subpath(d, force_absolute=true)
-    path = Path.new
-    path.directions = extract_directions d, force_absolute || []
-    unless path.directions.empty?
-      path.start = path.directions.first.start
-      path.finish = path.directions.last.finish
+    private
+    def extract_subpaths(d)
+      subpaths = []
+      move_index = d.index(/[Mm]/)
+
+      if move_index != nil
+        subpaths << d[0...move_index] if move_index > 0
+        d.scan(/[Mm](?:\d|[eE.,+-]|[LlHhVvQqCcTtSsAaZz]|\W)+/m) do |match_group|
+          subpaths << $&
+        end
+      else
+        subpaths << d
+      end
+      subpaths
     end
-    path
-  end
 
-  def extract_directions(d, force_absolute)
-    directions = []
-    d.scan(/[MmLlHhVvQqCcTtSsAaZz](?:\d|[eE.,+-]|\W)*/m) do
-      directions << build_direction($&, force_absolute)
+    def parse_subpath(d)
+      path = Path.new
+      path.directions = extract_directions(d) || []
+      unless path.directions.empty?
+        path.start = path.directions.first.start
+        path.finish = path.directions.last.finish
+      end
+      path
     end
-    directions.flatten
-  end
 
-  def build_direction(d, force_absolute)
-    directions = []
-    recurse_code = d[0..1].gsub(' ')
-    coordinates = extract_coordinates d
-    directions << construct_direction(recurse_code, coordinates, force_absolute)
-  end
-
-  def extract_coordinates(command_string)
-    coordinates = []
-    command_string.scan(/-?\d+(\.\d+)?([eE][+-]?\d+)?/) do
-      coordinates << $&.to_f
+    def extract_directions(d)
+      directions = []
+      d.scan(/[MmLlHhVvQqCcTtSsAaZz](?:\d|[eE.,+-]|\W)*/m) do
+        directions << build_direction($&)
+      end
+      directions.flatten
     end
-    coordinates
+
+    def build_direction(d)
+      command_code = d[0]
+      coordinates = extract_coordinates d
+      DIRECTIONS[command_code.downcase.to_sym].new(command_code, coordinates)
+    end
+
+    def extract_coordinates(command_string)
+      coordinates = []
+      command_string.scan(/-?\d+(\.\d+)?([eE][+-]?\d+)?/) do
+        coordinates << $&.to_f
+      end
+      coordinates
+    end
   end
-
-  def construct_direction(recurse_code, coordinates, absolute)
-    raise TypeError if args.any?(&:nil?)
-    DIRECTIONS[recurse_code][:class].new(coordinates, absolute)
-  end
-
-
 end

@@ -1,3 +1,25 @@
-class Direction
+Point = Struct.new :x, :y
 
+class Direction
+  attr_accessor :start, :finish
+  attr_reader :command_code, :coordinates
+
+
+  def initialize(command_code, coordinates)
+    @command_code = command_code
+    @coordinates = coordinates
+    @finish = Point.new coordinates[-2], coordinates[-1]
+  end
+
+  def absolute?
+    @command_code == @command_code.upcase
+  end
+
+  def length(x1=nil, y1=nil, x2=nil, y2=nil)
+    if x1.nil? && x2.nil? && y1.nil? && y2.nil?
+      Math.sqrt((start.x-finish.x)**2 + (start.y-finish.y)**2)
+    else
+      Math.sqrt((x2-x1)**2 + (y2-y1)**2)
+    end
+  end
 end
