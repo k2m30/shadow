@@ -1,0 +1,3 @@
+class QuadraticCurveTo < Direction
+
+end

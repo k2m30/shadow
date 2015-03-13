@@ -1,0 +1,3 @@
+class LineTo < Direction
+
+end

@@ -1,0 +1,3 @@
+class CubicCurveTo < Direction
+
+end

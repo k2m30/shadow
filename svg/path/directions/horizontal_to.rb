@@ -1,0 +1,3 @@
+class HorizontalTo < Direction
+
+end

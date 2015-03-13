@@ -1,0 +1,3 @@
+class MoveTo < Direction
+  
+end

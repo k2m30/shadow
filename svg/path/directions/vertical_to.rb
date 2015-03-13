@@ -1,0 +1,3 @@
+class VerticalTo < Direction
+
+end
