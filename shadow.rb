@@ -107,7 +107,8 @@ ShadowPoint = Struct.new :x, :y, :z
 # save_scad('shadow.scad', zpoints)
 
 
-svg = SVG.new('images/lines.svg')
+svg = SVG.new 'images/lines.svg'
+pp svg.paths
 svg.paths.each do |path|
- p path.directions.map(&:absolute?)
+ pp path.directions.map(&:finish)
 end

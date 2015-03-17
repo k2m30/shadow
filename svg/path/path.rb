@@ -1,9 +1,10 @@
+require_relative 'directions/direction'
 require_relative 'directions/move_to'
 require_relative 'directions/line_to'
 require_relative 'directions/horizontal_to'
 require_relative 'directions/vertical_to'
-require_relative 'directions/cubic_curve_to'
 require_relative 'directions/quadratic_curve_to'
+require_relative 'directions/cubic_curve_to'
 require_relative 'directions/arc_to'
 require_relative 'directions/close_path'
 
@@ -28,18 +29,36 @@ class Path
     @directions = []
   end
 
-  def organize!
+  def organize!(point=nil)
+    unless point.nil?
+      @start = point
+      directions.first.start = point
+    end
+    directions.first.absolute!(@start)
+    directions.each_index do |i|
+      next if i==0
+      directions[i].absolute!(directions[i-1].finish)
+    end
+
+    @finish = directions.last.finish
     self
+  end
+
+  def length
+
   end
 
   class << self
     def parse(d)
-      raise TypeError unless d.kind_of? String
+      raise TypeError unless d.is_a? String
       subpaths = extract_subpaths d
       raise TypeError if subpaths.empty?
       paths = []
+      last_point = nil
       subpaths.each do |subpath|
-        paths << parse_subpath(subpath).organize!
+        next_path = parse_subpath(subpath).organize!(last_point)
+        paths << next_path
+        last_point = next_path.directions.last.finish
       end
       paths
     end
@@ -62,9 +81,14 @@ class Path
 
     def parse_subpath(d)
       path = Path.new
+      path.d = d
       path.directions = extract_directions(d) || []
       unless path.directions.empty?
-        path.start = path.directions.first.start
+        if path.directions.first.is_a? MoveTo
+          path.start = path.directions.first.finish
+        else
+          path.start = path.directions.first.start
+        end
         path.finish = path.directions.last.finish
       end
       path

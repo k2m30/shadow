@@ -1,23 +1,28 @@
 class QuadraticCurveTo < Direction
-
+  attr_accessor :control_point_1
+  def initialize(command_code, coordinates)
+    @control_point_1 = Point.new coordinates[2], coordinates[3]
+    super
+  end
+  
   def split(size, last_curve_point=nil)
     n = 4
 
-    x0 = position.x
-    y0 = position.y
+    x0 = @start.x
+    y0 = @start.y
 
-    if @control
-      x1 = @control.x
-      y1 = @control.y
+    if @control_point_1
+      x1 = @control_point_1.x
+      y1 = @control_point_1.y
     else
-      p position
+      p @start
       p last_curve_point
-      x1 = 2 * position.x - last_curve_point.x
-      y1 = 2 * position.y - last_curve_point.y
+      x1 = 2 * @start.x - last_curve_point.x
+      y1 = 2 * @start.y - last_curve_point.y
     end
 
-    x2 = target.x
-    y2 = target.y
+    x2 = @finish.x
+    y2 = @finish.y
 
     #if curve is too small - just change it to line
     if (length(x0, y0, x1, y1) < size/n) && (length(x1, y1, x2, y2) < size/n) &&
