@@ -1,18 +1,23 @@
 class CubicCurveTo < QuadraticCurveTo
   attr_accessor :control_point_2
+
   def initialize(command_code, coordinates)
-    @control_point_2 = Point.new coordinates[4], coordinates[5]
+    if command_code.downcase == 'c'
+      @control_point_2 = Point.new coordinates[2], coordinates[3]
+    elsif command_code.downcase == 's'
+      @control_point_2 = nil
+    end
     super
   end
 
-  
+
   def split(size, last_curve_point=nil)
     n = 4 #start number of pieces value
 
     x0 = @start.x
     y0 = @start.y
 
-    if @control_point_1
+    if @control_point_2
       x1 = @control_point_1.x
       y1 = @control_point_1.y
     else
@@ -29,7 +34,7 @@ class CubicCurveTo < QuadraticCurveTo
     #if curve is too small - just change it to line
     if (length(x0, y0, x1, y1) < size) && (length(x1, y1, x2, y2) < size) &&
         (length(x2, y2, x3, y3) < size) && (length(x0, y0, x3, y3) < size)
-      return LineTo.new('L',[x3, y3])
+      return LineTo.new('L', [x3, y3])
     end
 
     #### detecting proper differentiation value
@@ -62,14 +67,14 @@ class CubicCurveTo < QuadraticCurveTo
     (n-1).times do
       x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
       y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
-      result << LineTo.new('L',[x, y])
+      result << LineTo.new('L', [x, y])
       t+=dt
     end
     t = 1
     x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
     y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
-    result << LineTo.new('L',[x, y])
-
+    result << LineTo.new('L', [x, y])
+    result
   end
 
 

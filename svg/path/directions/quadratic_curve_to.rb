@@ -1,10 +1,15 @@
 class QuadraticCurveTo < Direction
   attr_accessor :control_point_1
+
   def initialize(command_code, coordinates)
-    @control_point_1 = Point.new coordinates[2], coordinates[3]
+    if %w[q c].include? command_code.downcase
+      @control_point_1 = Point.new coordinates[0], coordinates[1]
+    elsif %w[t s].include? command_code.downcase
+      @control_point_1 = nil
+    end
     super
   end
-  
+
   def split(size, last_curve_point=nil)
     n = 4
 
@@ -68,7 +73,7 @@ class QuadraticCurveTo < Direction
     x = (1 - t) * (1 - t) * x0 + 2 * t * (1 - t) * x1 + t * t * x2
     y = (1 - t) * (1 - t) * y0 + 2 * t * (1 - t) * y1 + t * t * y2
     result << LineTo.new('L', [x, y])
-
+    result
   end
 
 end

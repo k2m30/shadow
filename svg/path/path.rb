@@ -39,9 +39,21 @@ class Path
       next if i==0
       directions[i].absolute!(directions[i-1].finish)
     end
-
+    if directions.last.is_a? ClosePath
+      start_point = directions[-2].finish
+      directions[-1] = LineTo.new 'L', [@start.x, @start.y]
+      directions[-1].start = start_point
+    end
     @finish = directions.last.finish
     self
+  end
+
+  def split(size)
+    spath = Path.new
+    directions.each do |direction|
+      spath.directions+= direction.split size
+    end
+    spath
   end
 
   def length

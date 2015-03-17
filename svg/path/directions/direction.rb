@@ -16,11 +16,11 @@ class Direction
   end
 
   def length(x1=nil, y1=nil, x2=nil, y2=nil)
-    if x1.nil? && x2.nil? && y1.nil? && y2.nil?
-      Math.sqrt((@start.x-@finish.x)**2 + (@start.y-@finish.y)**2)
-    else
-      Math.sqrt((x2-x1)**2 + (y2-y1)**2)
-    end
+      if x1.nil? && x2.nil? && y1.nil? && y2.nil?
+        Math.sqrt((@start.x-@finish.x)**2 + (@start.y-@finish.y)**2)
+      else
+        Math.sqrt((x2-x1)**2 + (y2-y1)**2)
+      end
   end
 
   def absolute!(start_point=nil)

@@ -25,4 +25,24 @@ class SVG
     @width = svg.at_css('svg')[:width].to_f
     @height = svg.at_css('svg')[:height].to_f
   end
+
+  def split!(size)
+    @splitted_path = []
+    @paths.directions.each_with_index do |direction, i|
+      if %w[S s T t].include? direction.command_code # smooth curves need second control point of previous curve
+        new_directions = direction.split size, @paths.directions[i-1].control_2
+      else
+        new_directions = direction.split size
+      end
+
+      path = Path.new
+      path.directions = new_directions
+      @splitted_path << path
+
+    end
+
+    # @splitted_path.calculate_start_points!(@properties['initial_x'], @properties['initial_y'])
+    # @splitted_path.calculate_angles!
+  end
+
 end

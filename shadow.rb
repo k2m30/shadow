@@ -106,9 +106,44 @@ ShadowPoint = Struct.new :x, :y, :z
 # # zpoints.pop
 # save_scad('shadow.scad', zpoints)
 
-
-svg = SVG.new 'images/lines.svg'
-pp svg.paths
-svg.paths.each do |path|
- pp path.directions.map(&:finish)
+def calculate_dimensions(path)
+  height = width = 0
+  path.directions.each do |direction|
+    next if direction.is_a? ClosePath
+    width = direction.finish.x if direction.finish.x > width
+    height = direction.finish.y if direction.finish.y > height
+  end
+  [width, height]
 end
+
+
+def save(file_name, paths)
+  dimensions = calculate_dimensions(path)
+
+  output_file = SVG.new(dimensions[0]+10, dimensions[1]+10)
+  paths.each_with_index do |subpath, i|
+      output_file.svg << output_file.paths(subpath.to_command, "path_#{i}")
+  end
+  output_file.save(file_name)
+  print "Saved to #{file_name}\n"
+end
+
+
+@properties = File.open('properties.yml') { |yf| YAML::load(yf) }
+
+svg = SVG.new 'images/hare.svg'
+
+svg.paths.each do |path|
+ path.directions.each do |direction|
+   p [direction.command_code, direction.start]
+ end
+  p '-----'
+end
+
+spaths = []
+size = @properties['max_segment_length']
+svg.paths.each do |path|
+  spaths << path.split(size)
+end
+
+save('splitted.svg',spaths)
