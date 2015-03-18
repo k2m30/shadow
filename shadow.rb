@@ -106,25 +106,46 @@ ShadowPoint = Struct.new :x, :y, :z
 # # zpoints.pop
 # save_scad('shadow.scad', zpoints)
 
-def calculate_dimensions(path)
+def calculate_dimensions(paths)
   height = width = 0
-  path.directions.each do |direction|
-    next if direction.is_a? ClosePath
-    width = direction.finish.x if direction.finish.x > width
-    height = direction.finish.y if direction.finish.y > height
+  paths.each do |path|
+    width = path.dimensions[2] if path.dimensions[2] > width
+    height = path.dimensions[3] if path.dimensions[3] > height
   end
   [width, height]
 end
 
 
 def save(file_name, paths)
-  dimensions = calculate_dimensions(path)
+  dimensions = calculate_dimensions(paths)
 
-  output_file = SVG.new(dimensions[0]+10, dimensions[1]+10)
-  paths.each_with_index do |subpath, i|
-      output_file.svg << output_file.paths(subpath.to_command, "path_#{i}")
+  builder = Nokogiri::XML::Builder.new do |xml|
+    xml.doc.create_internal_subset(
+        'svg',
+        '-//W3C//DTD SVG 1.1//EN',
+        'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'
+    )
+    xml.svg(version: '1.1', xmlns: 'http://www.w3.org/2000/svg', 'xmlns:xlink' => 'http://www.w3.org/1999/xlink',
+            x: 0, y: 0, width: dimensions[0], height: dimensions[1], viewBox: "0, 0, #{dimensions[0]}, #{dimensions[1]}") {
+      xml.marker(id: 'arrow-start', markerWidth: 8, markerHeight: 8, refX: '-2%', refY: 4, markerUnits: 'userSpaceOnUse', orient: 'auto') {
+        xml.polyline(points: '0,0 8,4 0,8 2,4 0,0', 'stroke-width' => 1, stroke: 'darkred', fill: 'red')
+      }
+      xml.marker(id: 'arrow-end', markerWidth: 8, markerHeight: 8, refX: '2%', refY: 4, markerUnits: 'userSpaceOnUse', orient: 'auto') {
+        xml.polyline(points: '0,0 8,4 0,8 2,4 0,0', 'stroke-width' => 1, stroke: 'darkred', fill: 'red')
+      }
+      xml.style 'g.stroke path:hover {stroke-width: 9;}'
+      xml.style 'g.move_to path:hover{stroke-width: 4;}'
+
+      paths.each_with_index do |path, i|
+        xml.g(class: 'stroke', stroke: 'black', 'stroke-width' => 3, fill: 'none', 'marker-start' => 'none', 'marker-end' => 'none') {
+          xml.path(d: path.d, id: "path_#{i}")
+        }
+      end
+    }
   end
-  output_file.save(file_name)
+  puts builder.to_xml
+
+  File.open(file_name, 'w') { |f| f.write builder.to_xml }
   print "Saved to #{file_name}\n"
 end
 
@@ -134,9 +155,9 @@ end
 svg = SVG.new 'images/hare.svg'
 
 svg.paths.each do |path|
- path.directions.each do |direction|
-   p [direction.command_code, direction.start]
- end
+  path.directions.each do |direction|
+    p [direction.command_code, direction.start]
+  end
   p '-----'
 end
 
@@ -146,4 +167,4 @@ svg.paths.each do |path|
   spaths << path.split(size)
 end
 
-save('splitted.svg',spaths)
+save('splitted.svg', spaths)

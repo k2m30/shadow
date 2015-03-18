@@ -34,7 +34,7 @@ class CubicCurveTo < QuadraticCurveTo
     #if curve is too small - just change it to line
     if (length(x0, y0, x1, y1) < size) && (length(x1, y1, x2, y2) < size) &&
         (length(x2, y2, x3, y3) < size) && (length(x0, y0, x3, y3) < size)
-      return LineTo.new('L', [x3, y3])
+      return LineTo.new('L', [x3.round(2), y3.round(2)])
     end
 
     #### detecting proper differentiation value
@@ -67,14 +67,26 @@ class CubicCurveTo < QuadraticCurveTo
     (n-1).times do
       x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
       y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
-      result << LineTo.new('L', [x, y])
+      result << LineTo.new('L', [x.round(2), y.round(2)])
       t+=dt
     end
     t = 1
     x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * t * (1 - t) * (1 - t) * x1 + 3 * t * t * (1 - t) * x2 + t * t * t * x3
     y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t * y3
-    result << LineTo.new('L', [x, y])
+    result << LineTo.new('L', [x.round(2), y.round(2)])
     result
+  end
+
+  def to_command
+    " #{command_code} #{@control_point_1.x} #{@control_point_1.y} #{@control_point_2.x} #{@control_point_2.y} #{finish.x} #{finish.y}"
+  end
+
+  def absolute!(start_point=nil)
+    unless absolute?
+      @control_point_2.x += start_point.x
+      @control_point_2.y += start_point.y
+    end
+    super
   end
 
 

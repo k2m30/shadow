@@ -32,4 +32,9 @@ class Direction
     @start = start_point
     self
   end
+
+  def to_command
+    " #{command_code} #{finish.x} #{finish.y}"
+  end
+
 end

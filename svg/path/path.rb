@@ -24,7 +24,7 @@ class Path
       z: ClosePath
   }
 
-  def initialize(d=[])
+  def initialize(d='')
     @d = d
     @directions = []
   end
@@ -48,11 +48,44 @@ class Path
     self
   end
 
+  def d
+    @d = ''
+    directions.each do |direction|
+      @d << direction.to_command
+    end
+    @d
+  end
+
+  def dimensions
+    max_x = -Float::INFINITY
+    max_y = -Float::INFINITY
+
+    min_x = Float::INFINITY
+    min_y = Float::INFINITY
+
+    directions.each do |direction|
+      next if direction.is_a? MoveTo
+      max_x = direction.start.x if max_x < direction.start.x
+      max_y = direction.start.y if max_y < direction.start.y
+
+      max_x = direction.finish.x if max_x < direction.finish.x
+      max_y = direction.finish.y if max_y < direction.finish.y
+
+      min_x = direction.start.x if min_x > direction.start.x
+      min_y = direction.start.y if min_y > direction.start.y
+
+      min_x = direction.finish.x if min_x > direction.finish.x
+      min_y = direction.finish.y if min_y > direction.finish.y
+    end
+    [min_x, min_y, max_x, max_y]
+  end
+
   def split(size)
     spath = Path.new
     directions.each do |direction|
       spath.directions+= direction.split size
     end
+    spath.organize!(spath.directions.first.finish)
     spath
   end
 

@@ -5,4 +5,9 @@ class ClosePath < Direction
     command_code.upcase!
     self
   end
+
+  def to_command
+    ' Z'
+  end
+
 end

@@ -7,7 +7,7 @@ class LineTo < Direction
 
     result = []
     n.times do |i|
-      result << LineTo.new('L', [start.x + dx*(i+1), start.y + dy*(i+1)])
+      result << LineTo.new('L', [(start.x + dx*(i+1)).round(2), (start.y + dy*(i+1)).round(2)])
     end
     result
   end

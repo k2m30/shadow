@@ -32,7 +32,7 @@ class QuadraticCurveTo < Direction
     #if curve is too small - just change it to line
     if (length(x0, y0, x1, y1) < size/n) && (length(x1, y1, x2, y2) < size/n) &&
         (length(x0, y0, x2, y2) < size/n)
-      return [LineTo.new('L', [x2, y2])]
+      return [LineTo.new('L', [x2.round(2), y2.round(2)])]
     end
 
     #### detecting proper differentiation value
@@ -66,14 +66,27 @@ class QuadraticCurveTo < Direction
     (n-1).times do
       x = (1 - t) * (1 - t) * x0 + 2 * t * (1 - t) * x1 + t * t * x2
       y = (1 - t) * (1 - t) * y0 + 2 * t * (1 - t) * y1 + t * t * y2
-      result << LineTo.new('L', [x, y])
+      result << LineTo.new('L', [x.round(2), y.round(2)])
       t+=dt
     end
     t = 1
     x = (1 - t) * (1 - t) * x0 + 2 * t * (1 - t) * x1 + t * t * x2
     y = (1 - t) * (1 - t) * y0 + 2 * t * (1 - t) * y1 + t * t * y2
-    result << LineTo.new('L', [x, y])
+    result << LineTo.new('L', [x.round(2), y.round(2)])
     result
   end
+
+  def to_command
+    " #{command_code} #{@control_point_1.x} #{@control_point_1.y} #{finish.x} #{finish.y}"
+  end
+
+  def absolute!(start_point=nil)
+    unless absolute?
+      @control_point_1.x += start_point.x
+      @control_point_1.y += start_point.y
+    end
+    super
+  end
+
 
 end
