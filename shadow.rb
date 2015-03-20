@@ -6,7 +6,7 @@ ShadowPoint = Struct.new :x, :y, :z
 
 def find_center(paths)
   w = calculate_dimensions(paths)
-  w[2]-w[0]
+  (w[2]-w[0])/2
 end
 
 def save_scad(file_name, points)
@@ -99,22 +99,29 @@ shadow_paths.each do |path|
     unless direction.start.nil?
       x0 = direction.start.x
       y0 = direction.start.y
-      direction.start.x = d * (x0-w/2)/(d+y0) + w/2
+      direction.start.x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
       # y = d
-      direction.start.y = h - d * h / (d+y0)
+      direction.start.y = (h - d * h / (d+y0)).round(2)
     end
     unless direction.finish.nil?
       x0 = direction.finish.x
       y0 = direction.finish.y
-      direction.finish.x = d * (x0-w/2)/(d+y0) + w/2
+      direction.finish.x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
       # y = d
-      direction.finish.y = h - d * h / (d+y0)
+      direction.finish.y = (h - d * h / (d+y0)).round(2)
     end
   end
 end
 
+shadow_paths.each do |path|
+  path.directions.each do |direction|
+    p [direction.command_code, direction.start, direction.finish]
+  end
+  p '-----'
+end
+
 save('shadow.svg', shadow_paths)
-save_scad('shadow.scad', shadow_paths)
+# save_scad('shadow.scad', shadow_paths)
 
 # @properties = File.open('properties.yml') { |yf| YAML::load(yf) }
 #

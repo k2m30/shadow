@@ -1,9 +1,9 @@
-h : 50.0
+h : 150.0
 d : 40.0
 canvas_size_x : 1010.0
 linear_velocity : 30000.0
 ff_velocity : 30000.0
-max_segment_length : 10
+max_segment_length : 100
 initial_x : -1.0
 initial_y : -1.0
 dx : 0
