@@ -4,9 +4,9 @@ require 'pp'
 
 ShadowPoint = Struct.new :x, :y, :z
 
-def find_center(paths)
+def find_width(paths)
   w = calculate_dimensions(paths)
-  (w[2]-w[0])/2
+  (w[2]-w[0])
 end
 
 def save_scad(file_name, points)
@@ -89,7 +89,7 @@ save('splitted.svg', spaths)
 shadow_paths = spaths.clone
 
 d = properties['d']
-w = find_center(shadow_paths)
+w = find_width(shadow_paths)
 h = properties['h']
 
 p w
