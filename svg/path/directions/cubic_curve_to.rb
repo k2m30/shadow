@@ -34,7 +34,7 @@ class CubicCurveTo < QuadraticCurveTo
     #if curve is too small - just change it to line
     if (length(x0, y0, x1, y1) < size) && (length(x1, y1, x2, y2) < size) &&
         (length(x2, y2, x3, y3) < size) && (length(x0, y0, x3, y3) < size)
-      return LineTo.new('L', [x3.round(2), y3.round(2)])
+      return [LineTo.new('L', [x3.round(2), y3.round(2)])]
     end
 
     #### detecting proper differentiation value

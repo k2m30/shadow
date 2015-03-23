@@ -83,7 +83,11 @@ class Path
   def split(size)
     spath = Path.new
     directions.each do |direction|
-      spath.directions+= direction.split size
+      begin
+        spath.directions+= direction.split size
+      rescue => e
+        p e
+      end
     end
     spath.organize!(spath.directions.first.finish)
     spath

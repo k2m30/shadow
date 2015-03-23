@@ -1,5 +1,5 @@
-h : 50.0
-d : 40.0
+h : 1000.0
+d : 100.0
 canvas_size_x : 1010.0
 linear_velocity : 30000.0
 ff_velocity : 30000.0

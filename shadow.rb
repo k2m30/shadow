@@ -70,8 +70,8 @@ end
 
 
 Dir.mkdir('result') unless Dir.exists?('result')
-# file_name = '../genko/images/hare.svg'
-file_name = 'images/lines.svg'
+file_name = 'images/hare.svg'
+# file_name = 'images/lines.svg'
 # file_name = 'images/circle.svg'
 
 
@@ -115,15 +115,15 @@ spaths.each do |path|
 end
 
 
-first_point = shadow_paths.first.directions.first.finish
-last_point = shadow_paths.last.directions.last.finish
-
-unless first_point == last_point
-  close_path = Path.new
-  close_path.directions << Direction.new('M', [last_point.x, last_point.y])
-  close_path.directions << Direction.new('L', [first_point.x, first_point.y])
-  shadow_paths << close_path
-end
+# first_point = shadow_paths.first.directions.first.finish
+# last_point = shadow_paths.last.directions.last.finish
+#
+# unless first_point == last_point
+#   close_path = Path.new
+#   close_path.directions << Direction.new('M', [last_point.x, last_point.y])
+#   close_path.directions << Direction.new('L', [first_point.x, first_point.y])
+#   shadow_paths << close_path
+# end
 
 shadow_paths.each{|p| p.organize!(p.directions.first.finish)}
 
