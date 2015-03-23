@@ -62,7 +62,7 @@ def save(file_name, paths)
       end
     }
   end
-  puts builder.to_xml
+  # puts builder.to_xml
 
   File.open(file_name, 'w') { |f| f.write builder.to_xml }
   print "Saved to #{file_name}\n"
@@ -86,32 +86,46 @@ end
 
 save('splitted.svg', spaths)
 
-shadow_paths = spaths.clone
+shadow_paths = []
 
 d = properties['d']
-w = find_width(shadow_paths)
+w = find_width(spaths)
 h = properties['h']
 
 p w
 
-shadow_paths.each do |path|
+spaths.each do |path|
+  spath = Path.new
   path.directions.each do |direction|
     unless direction.start.nil?
       x0 = direction.start.x
       y0 = direction.start.y
-      direction.start.x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
-      # y = d
-      direction.start.y = (h - d * h / (d+y0)).round(2)
+      x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
+      y = (h - d * h / (d+y0)).round(2)
     end
     unless direction.finish.nil?
       x0 = direction.finish.x
       y0 = direction.finish.y
-      direction.finish.x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
-      # y = d
-      direction.finish.y = (h - d * h / (d+y0)).round(2)
+      x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
+      y = (h - d * h / (d+y0)).round(2)
     end
+    spath.directions << Direction.new(direction.command_code, [x,y])
   end
+  shadow_paths << spath
 end
+
+
+first_point = shadow_paths.first.directions.first.finish
+last_point = shadow_paths.last.directions.last.finish
+
+unless first_point == last_point
+  close_path = Path.new
+  close_path.directions << Direction.new('M', [last_point.x, last_point.y])
+  close_path.directions << Direction.new('L', [first_point.x, first_point.y])
+  shadow_paths << close_path
+end
+
+shadow_paths.each{|p| p.organize!(p.directions.first.finish)}
 
 shadow_paths.each do |path|
   path.directions.each do |direction|
@@ -122,22 +136,3 @@ end
 
 save('shadow.svg', shadow_paths)
 # save_scad('shadow.scad', shadow_paths)
-
-# @properties = File.open('properties.yml') { |yf| YAML::load(yf) }
-#
-# svg = SVG.new 'images/hare.svg'
-#
-# svg.paths.each do |path|
-#   path.directions.each do |direction|
-#     p [direction.command_code, direction.start]
-#   end
-#   p '-----'
-# end
-#
-# spaths = []
-# size = @properties['max_segment_length']
-# svg.paths.each do |path|
-#   spaths << path.split(size)
-# end
-#
-# save('splitted.svg', spaths)
