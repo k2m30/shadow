@@ -30,7 +30,10 @@ class Path
   end
 
   def organize!(point=nil)
-    unless point.nil?
+    if point.nil?
+      @start = directions.first.finish
+      directions.first.start = directions.first.finish
+    else
       @start = point
       directions.first.start = point
     end
@@ -83,11 +86,7 @@ class Path
   def split(size)
     spath = Path.new
     directions.each do |direction|
-      begin
-        spath.directions+= direction.split size
-      rescue => e
-        p e
-      end
+      spath.directions+= direction.split size
     end
     spath.organize!(spath.directions.first.finish)
     spath
