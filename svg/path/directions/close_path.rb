@@ -1,4 +1,3 @@
-require_relative 'direction'
 class ClosePath < Direction
 
   def absolute!(start_point=nil)

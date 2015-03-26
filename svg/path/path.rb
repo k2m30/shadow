@@ -102,11 +102,9 @@ class Path
       subpaths = extract_subpaths d
       raise TypeError if subpaths.empty?
       paths = []
-      last_point = nil
       subpaths.each do |subpath|
-        next_path = parse_subpath(subpath).organize!(last_point)
+        next_path = parse_subpath(subpath).organize!
         paths << next_path
-        last_point = next_path.directions.last.finish
       end
       paths
     end
