@@ -76,8 +76,8 @@ end
 
 
 Dir.mkdir('result') unless Dir.exists?('result')
-# file_name = 'images/hackerspace.svg'
-file_name = 'images/man.svg'
+file_name = 'images/hackerspace.svg'
+# file_name = 'images/tower.svg'
 # file_name = 'images/circle.svg'
 
 
@@ -95,7 +95,6 @@ d = properties['d']
 w = find_width(svg.splitted_paths)
 h = properties['h']
 
-p w
 svg.splitted_paths.each(&:organize!)
 
 svg.splitted_paths.each do |path|
@@ -111,11 +110,6 @@ svg.splitted_paths.each do |path|
 end
 
 shadow_paths.each(&:organize!)
-
-shadow_paths.each { |path|
-  path.directions.each { |direction| p [direction.command_code, direction.start, direction.finish] }
-  p '-----'
-}
 
 save('shadow.svg', shadow_paths)
 save_scad('shadow.scad', shadow_paths.map { |p| p.directions.map(&:finish) }.flatten, calculate_dimensions(shadow_paths))

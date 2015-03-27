@@ -9,4 +9,8 @@ class ClosePath < Direction
     ' Z'
   end
 
+  def split(size)
+    [self]
+  end
+
 end

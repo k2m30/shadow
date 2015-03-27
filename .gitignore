@@ -2,3 +2,5 @@
 *.idraw
 *.scad
 .idea
+*.stl
+*.g

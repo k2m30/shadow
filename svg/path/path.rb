@@ -68,6 +68,7 @@ class Path
 
     directions.each do |direction|
       next if direction.is_a? MoveTo
+      next if direction.is_a? ClosePath
       max_x = direction.start.x if max_x < direction.start.x
       max_y = direction.start.y if max_y < direction.start.y
 
