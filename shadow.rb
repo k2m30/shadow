@@ -7,7 +7,7 @@ def find_width(paths)
   (w[2]-w[0])
 end
 
-def save_scad(file_name, paths, dimensions)
+def save_scad(file_name, paths, dimensions, w)
   File.open(file_name, 'w') do |f|
     paths.each do |path|
       f.write 'linear_extrude(height = 1, max_y=2) '
@@ -36,7 +36,7 @@ def save_scad(file_name, paths, dimensions)
 
     f.write 'linear_extrude(height = 1, max_y=2) '
     f.write 'polygon ( points='
-    f.write "[[#{min_x}, #{min_y}],[#{max_x}, #{min_y}],[#{max_x}, #{min_y-5}],[#{min_x}, #{min_y-5}]]"
+    f.write "[[#{min_x}, #{min_y+1}],[#{w/2-0.5},#{min_y+1}],[#{w/2-0.5}, #{min_y-1}],[#{w/2+0.5}, #{min_y-1}],[#{w/2+0.5}, #{min_y+1}],[#{max_x}, #{min_y+1}],[#{max_x}, #{min_y-4}],[#{min_x}, #{min_y-4}]]"
     f.puts');'
   end
 end
@@ -96,8 +96,8 @@ end
 
 
 Dir.mkdir('result') unless Dir.exists?('result')
-file_name = 'images/hackerspace.svg'
-# file_name = 'images/tower.svg'
+# file_name = 'images/hackerspace.svg'
+file_name = 'images/ballet.svg'
 # file_name = 'images/circle.svg'
 
 
@@ -142,4 +142,4 @@ end
 shadow_paths.each { |path| path.each(&:organize!) }
 
 save('shadow.svg', shadow_paths)
-save_scad('shadow.scad', shadow_paths, calculate_dimensions(shadow_paths))
+save_scad('shadow.scad', shadow_paths, calculate_dimensions(shadow_paths), w)
