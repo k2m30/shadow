@@ -25,7 +25,7 @@ class SVG
     elements.map do |e|
       @paths.push e.attribute_nodes.select { |a| a.name == 'd' }
     end
-    @paths.flatten!.map!(&:value).map! { |path| Path.parse path }.flatten!
+    @paths.flatten!.map!(&:value).map! { |path| Path.parse path }#.flatten!
     @width = svg.at_css('svg')[:width].to_f
     @height = svg.at_css('svg')[:height].to_f
   end

@@ -117,7 +117,7 @@ class Path
 
       if move_index != nil
         subpaths << d[0...move_index] if move_index > 0
-        d.scan(/[Mm](?:\d|[eE.,+-]|[LlHhVvQqCcTtSsAaZz]|\W)+/m) do |match_group|
+        d.scan(/[Mm](?:\d|[eE.,+-]|[LlHhVvQqCcTtSsAaZz]|\W)+/m) do
           subpaths << $&
         end
       else

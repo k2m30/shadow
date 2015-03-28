@@ -7,12 +7,28 @@ def find_width(paths)
   (w[2]-w[0])
 end
 
-def save_scad(file_name, points, dimensions=[])
+def save_scad(file_name, paths, dimensions)
   File.open(file_name, 'w') do |f|
-    f.write 'linear_extrude(height = 1, max_y=2) '
-    f.write 'polygon ( points='
-    f.write points.map { |p| [p.x, p.y] }
-    f.puts');'
+    paths.each do |path|
+      f.write 'linear_extrude(height = 1, max_y=2) '
+      f.write 'polygon ( points='
+      directions = []
+      path.each do |subpath|
+        directions += subpath.directions.map(&:finish).map(&:to_a)
+      end
+      f.write directions
+
+      f.write ', paths = '
+      path_points = []
+      p = 0
+      path.each do |subpath|
+        size = subpath.directions.size
+        path_points << Array.new(size).fill{|i| p + i}
+        p += size
+      end
+      f.write path_points
+      f.puts');'
+    end
 
     max_x = dimensions[2]
     min_x = dimensions[0]
@@ -33,10 +49,12 @@ def calculate_dimensions(paths)
   min_y = Float::INFINITY
 
   paths.each do |path|
-    min_x = path.dimensions[0] if path.dimensions[0] < min_x
-    min_y = path.dimensions[1] if path.dimensions[1] < min_y
-    max_x = path.dimensions[2] if path.dimensions[2] > max_x
-    max_y = path.dimensions[3] if path.dimensions[3] > max_y
+    path.each do |subpath|
+      min_x = subpath.dimensions[0] if subpath.dimensions[0] < min_x
+      min_y = subpath.dimensions[1] if subpath.dimensions[1] < min_y
+      max_x = subpath.dimensions[2] if subpath.dimensions[2] > max_x
+      max_y = subpath.dimensions[3] if subpath.dimensions[3] > max_y
+    end
   end
   [min_x, min_y, max_x, max_y]
 end
@@ -63,9 +81,11 @@ def save(file_name, paths)
       xml.style 'g.move_to path:hover{stroke-width: 2;}'
 
       paths.each_with_index do |path, i|
-        xml.g(class: 'stroke', stroke: 'black', 'stroke-width' => 1, fill: 'none', 'marker-start' => 'none', 'marker-end' => 'none') {
-          xml.path(d: path.d, id: "path_#{i}")
-        }
+        path.each_with_index do |subpath, j|
+          xml.g(class: 'stroke', stroke: 'black', 'stroke-width' => 1, fill: 'none', 'marker-start' => 'none', 'marker-end' => 'none') {
+            xml.path(d: subpath.d, id: "path_#{i*j+j}")
+          }
+        end
       end
     }
   end
@@ -85,7 +105,13 @@ svg = SVG.new file_name
 properties = File.open('properties.yml') { |yf| YAML::load(yf) }
 
 size = properties['max_segment_length']
-svg.paths.each { |path| svg.splitted_paths << path.split(size) }
+svg.paths.each do |path|
+  subpaths = []
+  path.each do |subpath|
+   subpaths << subpath.split(size)
+  end
+  svg.splitted_paths << subpaths
+end
 
 save('splitted.svg', svg.splitted_paths)
 
@@ -95,21 +121,25 @@ d = properties['d']
 w = find_width(svg.splitted_paths)
 h = properties['h']
 
-svg.splitted_paths.each(&:organize!)
+svg.splitted_paths.each { |path| path.each(&:organize!) }
 
 svg.splitted_paths.each do |path|
-  spath = Path.new
-  path.directions.each do |direction|
-    x0 = direction.finish.x
-    y0 = direction.finish.y
-    x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
-    y = (h - d * h / (d+y0)).round(2)
-    spath.directions << Direction.new(direction.command_code, [x, y])
+  subpaths = []
+  path.each do |subpath|
+    spath = Path.new
+    subpath.directions.each do |direction|
+      x0 = direction.finish.x
+      y0 = direction.finish.y
+      x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
+      y = (h - d * h / (d+y0)).round(2)
+      spath.directions << Direction.new(direction.command_code, [x, y])
+    end
+    subpaths << spath
   end
-  shadow_paths << spath
+  shadow_paths << subpaths
 end
 
-shadow_paths.each(&:organize!)
+shadow_paths.each { |path| path.each(&:organize!) }
 
 save('shadow.svg', shadow_paths)
-save_scad('shadow.scad', shadow_paths.map { |p| p.directions.map(&:finish) }.flatten, calculate_dimensions(shadow_paths))
+save_scad('shadow.scad', shadow_paths, calculate_dimensions(shadow_paths))
