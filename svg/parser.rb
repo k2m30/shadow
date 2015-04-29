@@ -76,7 +76,7 @@ class Parser
 
       # we need to handle this separately, since ClosePath doesn't take any coordinates
       if @coordinates.empty? && recurse_code =~ /[Zz]/
-        directions << Directions::ClosePath.new(parsable[0, 1] == parsable[0, 1].upcase)
+        directions << Directions::ClosePath.new('Z', nil)
       end
 
       until @coordinates.empty?
