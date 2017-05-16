@@ -1,3 +1,4 @@
-h : 50.0
-d : 100.0
+light_x : 200.0
+light_y : 50.0 #d
+light_z : 50.0 #h
 max_segment_length : 2.0

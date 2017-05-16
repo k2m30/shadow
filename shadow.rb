@@ -23,11 +23,11 @@ def save_scad(file_name, paths, dimensions, w)
       p = 0
       path.each do |subpath|
         size = subpath.directions.size
-        path_points << Array.new(size).fill{|i| p + i}
+        path_points << Array.new(size).fill {|i| p + i}
         p += size
       end
       f.write path_points
-      f.puts');'
+      f.puts ');'
     end
 
     max_x = dimensions[2]
@@ -37,7 +37,7 @@ def save_scad(file_name, paths, dimensions, w)
     f.write 'linear_extrude(height = 1, max_y=2) '
     f.write 'polygon ( points='
     f.write "[[#{min_x}, #{min_y+1}],[#{w/2-0.5},#{min_y+1}],[#{w/2-0.5}, #{min_y-1}],[#{w/2+0.5}, #{min_y-1}],[#{w/2+0.5}, #{min_y+1}],[#{max_x}, #{min_y+1}],[#{max_x}, #{min_y-4}],[#{min_x}, #{min_y-4}]]"
-    f.puts');'
+    f.puts ');'
   end
 end
 
@@ -90,7 +90,7 @@ def save(file_name, paths)
     }
   end
 
-  File.open(file_name, 'w') { |f| f.write builder.to_xml }
+  File.open(file_name, 'w') {|f| f.write builder.to_xml}
   print "Saved to #{file_name}\n"
 end
 
@@ -102,13 +102,13 @@ file_name = 'images/shadow_sketch.svg'
 
 
 svg = SVG.new file_name
-properties = File.open('properties.yml') { |yf| YAML::load(yf) }
+properties = File.open('properties.yml') {|yf| YAML::load(yf)}
 
 size = properties['max_segment_length']
 svg.paths.each do |path|
   subpaths = []
   path.each do |subpath|
-   subpaths << subpath.split(size)
+    subpaths << subpath.split(size)
   end
   svg.splitted_paths << subpaths
 end
@@ -117,29 +117,30 @@ save('splitted.svg', svg.splitted_paths)
 
 shadow_paths = []
 
-d = properties['d']
+lx = properties['light_x']
+ly = -properties['light_y']
+lz = properties['light_z']
 w = find_width(svg.splitted_paths)
-h = properties['h']
 
-svg.splitted_paths.each { |path| path.each(&:organize!) }
+svg.splitted_paths.each {|path| path.each(&:organize!)}
 
 svg.splitted_paths.each do |path|
   subpaths = []
   path.each do |subpath|
     spath = Path.new
     subpath.directions.each do |direction|
-      x0 = direction.finish.x
-      y0 = direction.finish.y
-      x = (d * (x0-w/2)/(d+y0) + w/2).round(2)
-      y = (h - d * h / (d+y0)).round(2)
-      spath.directions << Direction.new(direction.command_code, [x, y])
+      sx = direction.finish.x
+      sy = direction.finish.y
+      x = sx - sy * (lx - sx) / (ly - sy)
+      z = (lx - sx).zero? ? lz * sy / (sy - ly) : (x - sx) * lz / (lx - sx)
+      spath.directions << Direction.new(direction.command_code, [x, z])
     end
     subpaths << spath
   end
   shadow_paths << subpaths
 end
 
-shadow_paths.each { |path| path.each(&:organize!) }
+shadow_paths.each {|path| path.each(&:organize!)}
 
 save('shadow.svg', shadow_paths)
 save_scad('shadow.scad', shadow_paths, calculate_dimensions(shadow_paths), w)
