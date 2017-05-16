@@ -97,7 +97,7 @@ end
 
 Dir.mkdir('result') unless Dir.exists?('result')
 # file_name = 'images/hackerspace.svg'
-file_name = 'images/ballet.svg'
+file_name = 'images/shadow_sketch.svg'
 # file_name = 'images/circle.svg'
 
 
