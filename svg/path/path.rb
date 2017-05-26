@@ -9,7 +9,7 @@ require_relative 'directions/arc_to'
 require_relative 'directions/close_path'
 
 class Path
-  attr_accessor :directions, :start, :finish, :d
+  attr_accessor :directions, :start, :finish, :d, :fill, :stroke
 
   DIRECTIONS = {
       m: MoveTo,
@@ -54,7 +54,7 @@ class Path
   def d
     @d = ''
     directions.each do |direction|
-      @d << direction.to_command
+      @d << direction.to_command << ' '
     end
     @d
   end
@@ -86,6 +86,8 @@ class Path
 
   def split(size)
     spath = Path.new
+    spath.fill = @fill
+    spath.stroke = @stroke
     directions.each do |direction|
       spath.directions+= direction.split size
     end
@@ -98,9 +100,10 @@ class Path
   end
 
   class << self
-    def parse(d)
-      raise TypeError unless d.is_a? String
-      subpaths = extract_subpaths d
+    def parse(path)
+      subpaths = extract_subpaths path[:d]
+      @fill = path[:fill]
+      @stroke = path[:stroke]
       raise TypeError if subpaths.empty?
       paths = []
       subpaths.each do |subpath|
@@ -129,6 +132,8 @@ class Path
     def parse_subpath(d)
       path = Path.new
       path.d = d
+      path.fill = @fill
+      path.stroke = @stroke
       path.directions = extract_directions(d) || []
       unless path.directions.empty?
         if path.directions.first.is_a? MoveTo

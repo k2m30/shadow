@@ -7,6 +7,27 @@ def find_width(paths)
   (w[2]-w[0])
 end
 
+def save_csv(file_name, paths)
+  File.open(file_name, 'w') do |f|
+    paths.each do |path|
+      directions = []
+      directions << [-1, -1]
+      path.each do |subpath|
+        directions += subpath.directions.map(&:finish).map(&:to_a)
+      end
+      directions << [-2, -2]
+      directions.first << directions.size - 2
+      directions.each do |d|
+        if d.size == 3
+          f.puts "#{d[0]},#{d[1]}, #{d[2]}"
+        else
+          f.puts "#{d[0]},#{d[1]}"
+        end
+      end
+    end
+  end
+end
+
 def save_scad(file_name, paths, dimensions, w)
   File.open(file_name, 'w') do |f|
     paths.each do |path|
@@ -98,7 +119,7 @@ end
 Dir.mkdir('result') unless Dir.exists?('result')
 # file_name = 'images/hackerspace.svg'
 file_name = 'images/shadow_sketch.svg'
-# file_name = 'images/circle.svg'
+# file_name = 'images/rectangle.svg'
 
 
 svg = SVG.new file_name
@@ -107,10 +128,12 @@ properties = File.open('properties.yml') {|yf| YAML::load(yf)}
 size = properties['max_segment_length']
 svg.paths.each do |path|
   subpaths = []
-  path.each do |subpath|
-    subpaths << subpath.split(size)
+  path.reject{|subpath| subpath.fill.nil?}.each do |subpath|
+    splitted_path = subpath.split(size)
+    splitted_path.d
+    subpaths << splitted_path
   end
-  svg.splitted_paths << subpaths
+  svg.splitted_paths << subpaths unless subpaths.empty?
 end
 
 save('splitted.svg', svg.splitted_paths)
@@ -128,13 +151,16 @@ svg.splitted_paths.each do |path|
   subpaths = []
   path.each do |subpath|
     spath = Path.new
+    spath.fill = subpath.fill
+    spath.stroke = subpath.stroke
     subpath.directions.each do |direction|
       sx = direction.finish.x
       sy = direction.finish.y
       x = sx - sy * (lx - sx) / (ly - sy)
       z = (lx - sx).zero? ? lz * sy / (sy - ly) : (x - sx) * lz / (lx - sx)
-      spath.directions << Direction.new(direction.command_code, [x, z])
+      spath.directions << Direction.new(direction.command_code, [x.round(2), z.round(2)])
     end
+    spath.d
     subpaths << spath
   end
   shadow_paths << subpaths
@@ -143,4 +169,11 @@ end
 shadow_paths.each {|path| path.each(&:organize!)}
 
 save('shadow.svg', shadow_paths)
-save_scad('shadow.scad', shadow_paths, calculate_dimensions(shadow_paths), w)
+save_scad(
+    "#{file_name.gsub('.svg', '')
+           .gsub('images/', '')}_#{lx.to_i}_#{ly.to_i}_#{lz.to_i}.scad",
+    shadow_paths,
+    calculate_dimensions(shadow_paths), w
+)
+
+save_csv(file_name.gsub('.svg', '.csv').gsub('images/',''), shadow_paths)
